@@ -195,15 +195,15 @@ class AttModel(CaptionModel):
             return self._sample_beam(fc_feats, att_feats, att_masks, opt)
 
         batch_size = fc_feats.size(0)
-        state = self.init_hidden(batch_size)
+        
 
         p_fc_feats, p_att_feats, pp_att_feats, p_att_masks = self._prepare_feature(fc_feats, att_feats, att_masks)
 
-        trigrams = [] # will be a list of batch_size dictionaries
+        
 
-        seq = fc_feats.new_zeros((batch_size, self.seq_length), dtype=torch.long)
-        seqLogprobs = fc_feats.new_zeros(batch_size, self.seq_length)
+        
 
+        #self.seq_length * [batch * self.seq_length(not necessarily reach this length)]
         sample_list = []  #i represent sampling from the ith word
         probs_list = []
         action_list = fc_feats.new_zeros((batch_size, self.seq_length), dtype=torch.long)
@@ -211,6 +211,10 @@ class AttModel(CaptionModel):
         
         for i in range(self.seq_length):
             #start with greedy everytime
+            state = self.init_hidden(batch_size)
+            seq = fc_feats.new_zeros((batch_size, self.seq_length), dtype=torch.long)
+            seqLogprobs = fc_feats.new_zeros(batch_size, self.seq_length)
+            trigrams = [] # will be a list of batch_size dictionaries
             sample_max = 1
             for t in range(self.seq_length + 1):
                 if t == 0: # input <bos>
