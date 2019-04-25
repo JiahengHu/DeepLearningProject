@@ -99,7 +99,6 @@ infos = model_infos[0]
 if len(opt.input_fc_dir) == 0:
     opt.input_fc_dir = infos['opt'].input_fc_dir
     opt.input_att_dir = infos['opt'].input_att_dir
-    opt.input_box_dir = infos['opt'].input_box_dir
     opt.input_label_h5 = infos['opt'].input_label_h5
 if len(opt.input_json) == 0:
     opt.input_json = infos['opt'].input_json

@@ -27,7 +27,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import json
 import argparse
 from random import shuffle, seed
@@ -42,7 +44,7 @@ import skimage.io
 
 from torchvision import transforms as trn
 preprocess = trn.Compose([
-        #trn.ToTensor(),
+       # trn.ToTensor(),
         trn.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
@@ -70,6 +72,8 @@ def main(params):
     os.mkdir(dir_att)
 
   for i,img in enumerate(imgs):
+    if i < 120000:
+        continue
     # load the image
     I = skimage.io.imread(os.path.join(params['images_root'], img['filepath'], img['filename']))
     # handle grayscale input images
@@ -78,8 +82,8 @@ def main(params):
       I = np.concatenate((I,I,I), axis=2)
 
     I = I.astype('float32')/255.0
-    I = torch.from_numpy(I.transpose([2,0,1])).cuda()
-    I = preprocess(I)
+    I = torch.from_numpy(I.transpose([2,0,1]))
+    I = preprocess(I).cuda()
     with torch.no_grad():
       tmp_fc, tmp_att = my_resnet(I, params['att_size'])
     # write to pkl
