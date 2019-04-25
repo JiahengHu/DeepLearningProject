@@ -15,6 +15,16 @@ import os
 import sys
 import misc.utils as utils
 
+bad_endings = ['a','an','the','in','for','at','of','with','before','after','on','upon','near','to','is','are','am']
+bad_endings += ['the']
+
+def count_bad(sen):
+    sen = sen.split(' ')
+    if sen[-1] in bad_endings:
+        return 1
+    else:
+        return 0
+
 def language_eval(dataset, preds, model_id, split):
     import sys
     sys.path.append("coco-caption")
@@ -26,7 +36,7 @@ def language_eval(dataset, preds, model_id, split):
 
     if not os.path.isdir('eval_results'):
         os.mkdir('eval_results')
-    cache_path = os.path.join('eval_results/', model_id + '_' + split + '.json')
+    cache_path = os.path.join('eval_results/', '.cache_'+ model_id + '_' + split + '.json')
 
     coco = COCO(annFile)
     valids = coco.getImgIds()
@@ -50,7 +60,10 @@ def language_eval(dataset, preds, model_id, split):
     for p in preds_filt:
         image_id, caption = p['image_id'], p['caption']
         imgToEval[image_id]['caption'] = caption
-    with open(cache_path, 'w') as outfile:
+    
+    out['bad_count_rate'] = sum([count_bad(_['caption']) for _ in preds_filt]) / float(len(preds_filt))
+    outfile_path = os.path.join('eval_results/', model_id + '_' + split + '.json')
+    with open(outfile_path, 'w') as outfile:
         json.dump({'overall': out, 'imgToEval': imgToEval}, outfile)
 
     return out
@@ -64,6 +77,8 @@ def eval_split(model, crit, loader, eval_kwargs={}):
     lang_eval = eval_kwargs.get('language_eval', 0)
     dataset = eval_kwargs.get('dataset', 'coco')
     beam_size = eval_kwargs.get('beam_size', 1)
+    remove_bad_endings = eval_kwargs.get('remove_bad_endings', 0)
+    os.environ["REMOVE_BAD_ENDINGS"] = str(remove_bad_endings) # Use this nasty way to make other code clean since it's a global configuration
 
     # Make sure in the evaluation mode
     model.eval()
@@ -82,7 +97,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
         if data.get('labels', None) is not None and verbose_loss:
             # forward the model to get loss
             tmp = [data['fc_feats'], data['att_feats'], data['labels'], data['masks'], data['att_masks']]
-            tmp = [torch.from_numpy(_).cuda() if _ is not None else _ for _ in tmp]
+            tmp = [_.cuda() if _ is not None else _ for _ in tmp]
             fc_feats, att_feats, labels, masks, att_masks = tmp
 
             with torch.no_grad():
@@ -95,7 +110,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
         tmp = [data['fc_feats'][np.arange(loader.batch_size) * loader.seq_per_img], 
             data['att_feats'][np.arange(loader.batch_size) * loader.seq_per_img],
             data['att_masks'][np.arange(loader.batch_size) * loader.seq_per_img] if data['att_masks'] is not None else None]
-        tmp = [torch.from_numpy(_).cuda() if _ is not None else _ for _ in tmp]
+        tmp = [_.cuda() if _ is not None else _ for _ in tmp]
         fc_feats, att_feats, att_masks = tmp
         # forward the model to also get generated samples for each image
         with torch.no_grad():

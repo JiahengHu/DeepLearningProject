@@ -25,7 +25,7 @@ def parse_opt():
 
     # Model settings
     parser.add_argument('--caption_model', type=str, default="show_tell",
-                    help='show_tell, show_attend_tell, all_img, fc, att2in, att2in2, att2all2, adaatt, adaattmo, topdown, stackatt, denseatt')
+                    help='show_tell, show_attend_tell, all_img, fc, att2in, att2in2, att2all2, adaatt, adaattmo, topdown, stackatt, denseatt, transformer')
     parser.add_argument('--rnn_size', type=int, default=512,
                     help='size of the rnn in number of hidden nodes in each layer')
     parser.add_argument('--num_layers', type=int, default=1,
@@ -68,8 +68,18 @@ def parse_opt():
                     help='After what epoch do we start finetuning the CNN? (-1 = disable; never finetune, 0 = finetune from start)')
     parser.add_argument('--seq_per_img', type=int, default=5,
                     help='number of captions to sample for each image during training. Done for efficiency since CNN forward pass is expensive. E.g. coco has 5 sents/image')
+
+    # Sample related
     parser.add_argument('--beam_size', type=int, default=1,
                     help='used when sample_max = 1, indicates number of beams in beam search. Usually 2 or 3 works well. More is not better. Set this to 1 for faster runtime but a bit worse performance.')
+    parser.add_argument('--max_length', type=int, default=20,
+                    help='Maximum length during sampling')
+    parser.add_argument('--length_penalty', type=str, default='',
+                    help='wu_X or avg_X, X is the alpha')
+    parser.add_argument('--block_trigrams', type=int, default=0,
+                    help='block repeated trigram.')
+    parser.add_argument('--remove_bad_endings', type=int, default=0,
+                    help='Remove bad endings')
 
     #Optimization: for the Language Model
     parser.add_argument('--optim', type=str, default='adam',
@@ -90,6 +100,17 @@ def parse_opt():
                     help='epsilon that goes into denominator for smoothing')
     parser.add_argument('--weight_decay', type=float, default=0,
                     help='weight_decay')
+    # Transformer
+    parser.add_argument('--label_smoothing', type=float, default=0,
+                    help='')
+    parser.add_argument('--noamopt', action='store_true',
+                    help='')
+    parser.add_argument('--noamopt_warmup', type=int, default=2000,
+                    help='')
+    parser.add_argument('--noamopt_factor', type=float, default=1,
+                    help='')
+    parser.add_argument('--reduce_on_plateau', action='store_true',
+                    help='')
 
     parser.add_argument('--scheduled_sampling_start', type=int, default=-1, 
                     help='at what iteration to start decay gt probability')
@@ -106,6 +127,8 @@ def parse_opt():
                     help='how many images to use when periodically evaluating the validation loss? (-1 = all)')
     parser.add_argument('--save_checkpoint_every', type=int, default=2500,
                     help='how often to save a model checkpoint (in iterations)?')
+    parser.add_argument('--save_history_ckpt', type=int, default=1,
+                    help='If save checkpoints at every save point')
     parser.add_argument('--checkpoint_path', type=str, default='save',
                     help='directory to store checkpointed models')
     parser.add_argument('--language_eval', type=int, default=0,

@@ -47,6 +47,8 @@ parser.add_argument('--max_ppl', type=int, default=0,
                 help='beam search by max perplexity or max probability.')
 parser.add_argument('--beam_size', type=int, default=2,
                 help='used when sample_max = 1, indicates number of beams in beam search. Usually 2 or 3 works well. More is not better. Set this to 1 for faster runtime but a bit worse performance.')
+parser.add_argument('--max_length', type=int, default=20,
+                help='Maximum length during sampling')
 parser.add_argument('--group_size', type=int, default=1,
                 help='used for diverse beam search. if group_size is 1, then it\'s normal beam search')
 parser.add_argument('--diversity_lambda', type=float, default=0.5,
@@ -87,7 +89,7 @@ parser.add_argument('--verbose_loss', type=int, default=0,
 
 opt = parser.parse_args()
 
-model_infos = [cPickle.load(open('log_%s/infos_%s-best.pkl' %(id, id))) for id in opt.ids]
+model_infos = [utils.pickle_load(open('log_%s/infos_%s-best.pkl' %(id, id))) for id in opt.ids]
 model_paths = ['log_%s/model-best.pth' %(id) for id in opt.ids]
 
 # Load one infos

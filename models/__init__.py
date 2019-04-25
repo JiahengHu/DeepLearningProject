@@ -12,12 +12,16 @@ import torch
 from .ShowTellModel import ShowTellModel
 from .FCModel import FCModel
 from .OldModel import ShowAttendTellModel, AllImgModel
-# from .Att2inModel import Att2inModel
 from .AttModel import *
+from .TransformerModel import TransformerModel
 
 def setup(opt):
     if opt.caption_model == 'fc':
         model = FCModel(opt)
+    elif opt.caption_model == 'language_model':
+        model = LMModel(opt)
+    elif opt.caption_model == 'newfc':
+        model = NewFCModel(opt)
     elif opt.caption_model == 'show_tell':
         model = ShowTellModel(opt)
     # Att2in model in self-critical
@@ -43,6 +47,9 @@ def setup(opt):
     # DenseAtt
     elif opt.caption_model == 'denseatt':
         model = DenseAttModel(opt)
+    # Transformer
+    elif opt.caption_model == 'transformer':
+        model = TransformerModel(opt)
     else:
         raise Exception("Caption model not supported: {}".format(opt.caption_model))
 

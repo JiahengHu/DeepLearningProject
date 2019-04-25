@@ -44,10 +44,12 @@ parser.add_argument('--dump_path', type=int, default=0,
 # Sampling options
 parser.add_argument('--sample_max', type=int, default=1,
                 help='1 = sample argmax words. 0 = sample from distributions.')
-parser.add_argument('--max_ppl', type=int, default=0,
-                help='beam search by max perplexity or max probability.')
 parser.add_argument('--beam_size', type=int, default=2,
                 help='used when sample_max = 1, indicates number of beams in beam search. Usually 2 or 3 works well. More is not better. Set this to 1 for faster runtime but a bit worse performance.')
+parser.add_argument('--max_length', type=int, default=20,
+                help='Maximum length during sampling')
+parser.add_argument('--length_penalty', type=str, default='',
+                help='wu_X or avg_X, X is the alpha')
 parser.add_argument('--group_size', type=int, default=1,
                 help='used for diverse beam search. if group_size is 1, then it\'s normal beam search')
 parser.add_argument('--diversity_lambda', type=float, default=0.5,
@@ -56,6 +58,10 @@ parser.add_argument('--temperature', type=float, default=1.0,
                 help='temperature when sampling from distributions (i.e. when sample_max = 0). Lower = "safer" predictions.')
 parser.add_argument('--decoding_constraint', type=int, default=0,
                 help='If 1, not allowing same word in a row')
+parser.add_argument('--block_trigrams', type=int, default=0,
+                help='block repeated trigram.')
+parser.add_argument('--remove_bad_endings', type=int, default=0,
+                help='Remove bad endings')
 # For evaluation on a folder of images:
 parser.add_argument('--image_folder', type=str, default='', 
                 help='If this is nonempty then will predict on the images in this folder path')
@@ -88,7 +94,7 @@ opt = parser.parse_args()
 
 # Load infos
 with open(opt.infos_path) as f:
-    infos = cPickle.load(f)
+    infos = utils.pickle_load(f)
 
 # override and collect parameters
 if len(opt.input_fc_dir) == 0:
@@ -102,7 +108,8 @@ if opt.batch_size == 0:
     opt.batch_size = infos['opt'].batch_size
 if len(opt.id) == 0:
     opt.id = infos['opt'].id
-ignore = ["id", "batch_size", "beam_size", "start_from", "language_eval"]
+ignore = ["id", "batch_size", "beam_size", "start_from", "language_eval", "block_trigrams"]
+
 for k in vars(infos['opt']).keys():
     if k not in ignore:
         if k in vars(opt):
