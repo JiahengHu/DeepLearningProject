@@ -277,7 +277,6 @@ class TransformerModel(AttModel):
         delattr(self, 'fc_embed')
         self.fc_embed = lambda x : x
         delattr(self, 'logit')
-        del self.ctx2att
 
         tgt_vocab = self.vocab_size + 1
         self.model = self.make_model(0, tgt_vocab,
